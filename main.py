@@ -10,10 +10,9 @@ from selenium.webdriver.safari.webdriver import WebDriver
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
-w, h = 3, 3
-gameBoard = [[0 for x in range(w)] for y in range(h)]
-imageSet = [[0 for x in range(w)] for y in range(h)]
-webElements = [[0 for x in range(w)] for y in range(h)]
+gameBoard = []
+imageSet = []
+webElements = []
 
 def makeScreenshot(current_session: webdriver):
 
@@ -58,20 +57,22 @@ def makeScreenshot(current_session: webdriver):
     img_inverted.close()
 
 def isGameOver():
+    # TODO: vergleich auf symbole
+    
     # check for winner
     # from left to right all rows
-    if (gameBoard[0][0]==gameBoard[0][1]==gameBoard[0][2]): return True
-    if (gameBoard[1][0]==gameBoard[1][1]==gameBoard[1][2]): return True
-    if (gameBoard[2][0]==gameBoard[2][1]==gameBoard[2][2]): return True
+    if (gameBoard[0]==gameBoard[1]==gameBoard[2]): return True
+    if (gameBoard[3]==gameBoard[4]==gameBoard[5]): return True
+    if (gameBoard[6]==gameBoard[7]==gameBoard[8]): return True
+    
+    # from top to down all columns
+    if (gameBoard[0]==gameBoard[3]==gameBoard[6]): return True
+    if (gameBoard[1]==gameBoard[4]==gameBoard[7]): return True
+    if (gameBoard[2]==gameBoard[5]==gameBoard[8]): return True
 
     # from top to down all columns
-    if (gameBoard[0][0]==gameBoard[1][0]==gameBoard[2][0]): return True
-    if (gameBoard[0][1]==gameBoard[1][1]==gameBoard[2][1]): return True
-    if (gameBoard[0][2]==gameBoard[1][2]==gameBoard[2][2]): return True
-
-    # from top to down all columns
-    if (gameBoard[0][0]==gameBoard[1][1]==gameBoard[2][2]): return True
-    if (gameBoard[0][2]==gameBoard[1][1]==gameBoard[2][0]): return True
+    if (gameBoard[0]==gameBoard[4]==gameBoard[8]): return True
+    if (gameBoard[2]==gameBoard[4]==gameBoard[6]): return True
 
     print ('checked game')
     return True
@@ -101,8 +102,7 @@ def analyzeBoard():
     # opening the cropped/inverted picture
     img_final = Image.open('final.png')
     width, height = img_final.size
-
-    print(img_final.size)
+    i=0
     for column in range(0, 3):
         for row in range(0, 3):
             # get single pictures
@@ -114,7 +114,6 @@ def analyzeBoard():
             left = int(width/3 * column) + crop_off
             right = int(width - (width/3 * (3-(column+1)))) - crop_off
 
-
             print('x' + str(row+1) + 'y' + str(column+1))
             # print('top: ' + str(top))
             # print('bottom: ' + str(bottom))
@@ -122,10 +121,11 @@ def analyzeBoard():
             # print('right: ' + str(right))
 
             # print(left, top, right, bottom)
-            imageSet[row][column] = img_final.crop((left, top, right, bottom))
+            imageSet[i] = img_final.crop((left, top, right, bottom))
+            imageSet[i].save('board/pos' + str(i+1) + '.png')
+            i=i+1
+            print(interpreteSymbol('board/pos' + str(i+1) + '.png'))
 
-            imageSet[row][column].save('board/x' + str(row+1) + 'y' + str(column+1) + '.png')
-            print(interpreteSymbol('board/x' + str(row+1) + 'y' + str(column+1) + '.png'))
     # updating the Array
     return
 
@@ -150,19 +150,18 @@ try:
     # (for clicking operation)
     element = driver.find_element_by_class_name('board')
     elements = element.find_elements_by_xpath('.//*')
-    x = 0
-    y = 0
+    i = 0
 
     for element in elements:
         option = element.get_attribute('class')
 
         # save WebElements in Array
-        webElements[x][y] = element
-
+        webElements[i] = element
+        i = i + 1
         try:
             print(element.find_element_by_xpath('.//*').get_attribute('class'))
         except:
-            print('null')
+            print('NF')
         # new_element = driver.find_element_by_class_name(option)
         # print(driver.find_element_by_class_name(option))
 
