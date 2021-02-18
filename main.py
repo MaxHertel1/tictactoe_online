@@ -1,10 +1,12 @@
 from selenium import webdriver
 from time import sleep
-from os import remove
+from os import error, remove
 from PIL import Image, ImageOps
 import pytesseract
 import cv2
 import os
+
+from selenium.webdriver.safari.webdriver import WebDriver
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
@@ -90,6 +92,13 @@ def interpreteSymbol(input: str):
 
     return text
 
+def interpreteWeb(current_session: webdriver):
+    # get data directly from website
+    element = current_session.find_element_by_class_name('board')
+    elements = element.find_elements_by_xpath('.//*')
+    for element in elements:
+        print(element.get_attribute('class'))
+
 def analyzeBoard():
     # opening the cropped/inverted picture
     img_final = Image.open('final.png')
@@ -124,32 +133,34 @@ def analyzeBoard():
 
 
 #####################
-# driver = webdriver.Safari() 
-# driver.get('https://playtictactoe.org')
+try:
+    driver = webdriver.Safari() 
+    driver.get('https://playtictactoe.org')
+    driver.set_window_size(1000,1000)
 
-# sleep(1)
-# driver.set_window_size(1000,1000)
-#####################
+    # accept cookies => clean vision
+    element = driver.find_element_by_id('consent')
+    element.click()
+    
+except error as e:
+    print(e.strerror)
+finally:
+    sleep(1)
+    # 
+    #####################
 
-#while (not isGameOver):
-# makeScreenshot(driver)
-analyzeBoard()
+    #while (not isGameOver):
+    # makeScreenshot(driver)
+    # analyzeBoard()
 
 
 
-#remove('input.png')
-# ending session
-#####################
-# sleep(5)
-# driver.quit()
-#####################
-print('ende')
+    #remove('input.png')
+    # ending session
+    #####################
+    # sleep(5)
+    driver.quit()
+    #####################
+    print('ende')
 
-#do while not win
-    #get picture
 
-    #analyze picture
-
-    #do move
-
-    #delete picture
