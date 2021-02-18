@@ -131,23 +131,23 @@ def updateGameBoardHtml(current_session: webdriver):
     return
 
 # gameBoard functions
-def isGameOver():
+def isGameOver(board: list):
     # TODO: vergleich auf symbole
 
     # check for winner
     # from left to right all rows
-    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[1]==gameBoard[2])): return gameBoard[0]
-    if (gameBoard[3] != None and (gameBoard[3]==gameBoard[4]==gameBoard[5])): return gameBoard[3]
-    if (gameBoard[6] != None and (gameBoard[6]==gameBoard[7]==gameBoard[8])): return gameBoard[6]
+    if (board[0] != None and (board[0]==board[1]==board[2])): return board[0]
+    if (board[3] != None and (board[3]==board[4]==board[5])): return board[3]
+    if (board[6] != None and (board[6]==board[7]==board[8])): return board[6]
     
     # from top to down all columns
-    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[3]==gameBoard[6])): return gameBoard[0]
-    if (gameBoard[1] != None and (gameBoard[1]==gameBoard[4]==gameBoard[7])): return gameBoard[1]
-    if (gameBoard[2] != None and (gameBoard[2]==gameBoard[5]==gameBoard[8])): return gameBoard[2]
+    if (board[0] != None and (board[0]==board[3]==board[6])): return board[0]
+    if (board[1] != None and (board[1]==board[4]==board[7])): return board[1]
+    if (board[2] != None and (board[2]==board[5]==board[8])): return board[2]
 
     # from top to down all columns
-    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[4]==gameBoard[8])): return gameBoard[0]
-    if (gameBoard[2] != None and (gameBoard[2]==gameBoard[4]==gameBoard[6])): return gameBoard[2]
+    if (board[0] != None and (board[0]==board[4]==board[8])): return board[0]
+    if (board[2] != None and (board[2]==board[4]==board[6])): return board[2]
 
     return False
 
@@ -157,6 +157,28 @@ def makeRandomMove():
         if (gameBoard[i] == None):
             webElements[i].click()
             break
+
+def calculateBestMove(virtBoard: list, score: int, turn: str):
+    # MinMax Algo for calculating move with best proper outcome
+    for i, val in enumerate(virtBoard):
+        if (val == None):
+            virtBoard[i] = turn
+            calculateBestMove(virtBoard, 0, 'O') if (turn=='X') else calculateBestMove(virtBoard, 0, 'X')
+        if (isGameOver(virtBoard) == 'X') : score = score + 1
+    return score
+
+def makeBestMove():
+    # MinMax Algo for calculating move with best proper outcome
+    highestScore = 0
+    bestCoice = 0
+    for i, val in enumerate(gameBoard):
+        if (val == None):
+            score = calculateBestMove(gameBoard, 0, 'X')
+            if (score>highestScore):
+                bestCoice = i
+    
+    webElements[i].click()
+    return 
 
 # main
 try:
@@ -180,10 +202,11 @@ try:
     while (True):
         sleep(2)
         updateGameBoardHtml(driver)
-        if (isGameOver() != False):
+        if (isGameOver(gameBoard) != False):
             break
         else:
-            makeRandomMove()
+            # makeRandomMove()
+            makeBestMove()
 
 except error as e:
     print(e.strerror)
