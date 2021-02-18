@@ -171,17 +171,12 @@ try:
     # getting all web ellements and save in webElements-list
     # (for clicking operation)
     element = driver.find_element_by_class_name('board')
-    elements = element.find_elements_by_xpath('.//*')
+    elements = element.find_elements_by_xpath('./*')
 
-    i = 0
-    for element in elements:
-        option = element.get_attribute('class')
-        option = option.replace( ' ','')
-        option = option.replace('\n','')
-        if (option != ''):
-            webElements[i] = element
-            i=i+1
+    for i, element in enumerate(elements):
+        webElements[i] = element
 
+    # starting main loop 
     while (True):
         sleep(2)
         updateGameBoardHtml(driver)
