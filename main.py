@@ -5,6 +5,7 @@ from PIL import Image, ImageOps
 import pytesseract
 import cv2
 import os
+import random
 
 from selenium.webdriver.safari.webdriver import WebDriver
 
@@ -14,6 +15,7 @@ gameBoard = [None] * 9
 imageSet = [None] * 9
 webElements = [None] * 9
 
+# OCR functions
 def makeScreenshot(current_session: webdriver):
 
     # make Screencapture and save
@@ -56,64 +58,6 @@ def makeScreenshot(current_session: webdriver):
     img_inverted.save('final.png')
     img_inverted.close()
 
-def isGameOver():
-    # TODO: vergleich auf symbole
-
-    # check for winner
-    # from left to right all rows
-    if (gameBoard[0]==gameBoard[1]==gameBoard[2]): return True
-    if (gameBoard[3]==gameBoard[4]==gameBoard[5]): return True
-    if (gameBoard[6]==gameBoard[7]==gameBoard[8]): return True
-    
-    # from top to down all columns
-    if (gameBoard[0]==gameBoard[3]==gameBoard[6]): return True
-    if (gameBoard[1]==gameBoard[4]==gameBoard[7]): return True
-    if (gameBoard[2]==gameBoard[5]==gameBoard[8]): return True
-
-    # from top to down all columns
-    if (gameBoard[0]==gameBoard[4]==gameBoard[8]): return True
-    if (gameBoard[2]==gameBoard[4]==gameBoard[6]): return True
-
-    print ('checked game')
-    return True
-
-def interpreteSymbol(input: str):
-    # interpretiere ein übereichtes Bild und gebe ein Symbol zurück (X oder O)
-    image = cv2.imread(input)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    gray = cv2.threshold(gray, 0, 255,
-    cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-    gray = cv2.medianBlur(gray, 3)
-    
-    filename = input.format(os.getpid())
-    cv2.imwrite(filename, gray)
-
-    text = pytesseract.image_to_string(gray)
-
-    return text
-
-def updateGameBoardHtml(current_session: webdriver):
-
-    # get data directly from website
-    element = current_session.find_element_by_class_name('board')
-    elements = element.find_elements_by_xpath('.//*')
-
-    for i, element in enumerate(elements):
-        # name = element.get_attribute('class')
-
-        # save WebElements in Array
-
-        webElements[i] = element
-        try:
-            print(element.find_element_by_xpath('.//*').get_attribute('class'))
-        except:
-            print('NF')
-
-
-    return
-
 def analyzeBoard():
     # opening the cropped/inverted picture
     img_final = Image.open('final.png')
@@ -145,8 +89,76 @@ def analyzeBoard():
     # updating the Array
     return
 
+def interpreteSymbol(input: str):
+    # interpretiere ein übereichtes Bild und gebe ein Symbol zurück (X oder O)
+    image = cv2.imread(input)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-#####################
+    gray = cv2.threshold(gray, 0, 255,
+    cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+
+    gray = cv2.medianBlur(gray, 3)
+    
+    filename = input.format(os.getpid())
+    cv2.imwrite(filename, gray)
+
+    text = pytesseract.image_to_string(gray)
+
+    return text
+
+# HTML functions
+def updateGameBoardHtml(current_session: webdriver):
+
+    # get data directly from website
+    element = current_session.find_element_by_class_name('board')
+    elements = element.find_elements_by_xpath('./*')
+
+    for i, element in enumerate(elements):
+
+        # save WebElements in Array
+        val = str(element.find_element_by_xpath('./*').get_attribute('class')).lower()
+        if (val == 'x'):
+            gameBoard[i] = 'X'
+        elif (val == 'o'):
+            gameBoard[i] = 'O'
+        else:
+            gameBoard[i] = None
+            
+        i=i+1
+    
+    print(gameBoard)
+
+    return
+
+# gameBoard functions
+def isGameOver():
+    # TODO: vergleich auf symbole
+
+    # check for winner
+    # from left to right all rows
+    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[1]==gameBoard[2])): return gameBoard[0]
+    if (gameBoard[3] != None and (gameBoard[3]==gameBoard[4]==gameBoard[5])): return gameBoard[3]
+    if (gameBoard[6] != None and (gameBoard[6]==gameBoard[7]==gameBoard[8])): return gameBoard[6]
+    
+    # from top to down all columns
+    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[3]==gameBoard[6])): return gameBoard[0]
+    if (gameBoard[1] != None and (gameBoard[1]==gameBoard[4]==gameBoard[7])): return gameBoard[1]
+    if (gameBoard[2] != None and (gameBoard[2]==gameBoard[5]==gameBoard[8])): return gameBoard[2]
+
+    # from top to down all columns
+    if (gameBoard[0] != None and (gameBoard[0]==gameBoard[4]==gameBoard[8])): return gameBoard[0]
+    if (gameBoard[2] != None and (gameBoard[2]==gameBoard[4]==gameBoard[6])): return gameBoard[2]
+
+    return False
+
+def makeRandomMove():
+    while (True):
+        i = random.randrange(0, 8, 1)
+        if (gameBoard[i] == None):
+            webElements[i].click()
+            break
+
+# main
 try:
     driver = webdriver.Safari() 
     driver.get('https://playtictactoe.org')
@@ -156,34 +168,33 @@ try:
     element = driver.find_element_by_id('consent')
     element.click()
 
-    # getting all web ellements and save in array
+    # getting all web ellements and save in webElements-list
     # (for clicking operation)
     element = driver.find_element_by_class_name('board')
     elements = element.find_elements_by_xpath('.//*')
-    
+
     i = 0
     for element in elements:
         option = element.get_attribute('class')
         option = option.replace( ' ','')
         option = option.replace('\n','')
         if (option != ''):
-            print(str(i) + option)
-            i=i+1
             webElements[i] = element
+            i=i+1
 
-        # try:
-        #     print(element.find_element_by_xpath('.//*').get_attribute('class'))
-        # except:
-        #     print('NF')
-        # new_element = driver.find_element_by_class_name(option)
-        # print(driver.find_element_by_class_name(option))
-
+    while (True):
+        sleep(2)
+        updateGameBoardHtml(driver)
+        if (isGameOver() != False):
+            break
+        else:
+            makeRandomMove()
 
 except error as e:
     print(e.strerror)
 finally:
     sleep(3)
     driver.quit()
-    print('ende')
+    print('Winner: ' + str(isGameOver()))
 
 
