@@ -14,6 +14,7 @@ pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/
 gameBoard = [None] * 9
 imageSet = [None] * 9
 webElements = [None] * 9
+helpBoard = [None] * 9
 
 # OCR functions
 def makeScreenshot(current_session: webdriver):
@@ -117,6 +118,7 @@ def updateGameBoardHtml(current_session: webdriver):
 
         # save WebElements in Array
         val = str(element.find_element_by_xpath('./*').get_attribute('class')).lower()
+        # print(str(i) + val)
         if (val == 'x'):
             gameBoard[i] = 'X'
         elif (val == 'o'):
@@ -126,8 +128,6 @@ def updateGameBoardHtml(current_session: webdriver):
             
         i=i+1
     
-    print(gameBoard)
-
     return
 
 # gameBoard functions
@@ -163,21 +163,38 @@ def calculateBestMove(virtBoard: list, score: int, turn: str):
     for i, val in enumerate(virtBoard):
         if (val == None):
             virtBoard[i] = turn
+            print(virtBoard)
             calculateBestMove(virtBoard, 0, 'O') if (turn=='X') else calculateBestMove(virtBoard, 0, 'X')
         if (isGameOver(virtBoard) == 'X') : score = score + 1
     return score
 
 def makeBestMove():
     # MinMax Algo for calculating move with best proper outcome
-    highestScore = 0
-    bestCoice = 0
-    for i, val in enumerate(gameBoard):
-        if (val == None):
-            score = calculateBestMove(gameBoard, 0, 'X')
-            if (score>highestScore):
-                bestCoice = i
+    highestScore = None
+    bestCoice = None
     
-    webElements[i].click()
+    for i, val in enumerate(gameBoard):
+        # print(val)
+        # print(i, val)
+        print(str(val) + ' - ' + str(i))
+        if (gameBoard[i] == None):
+            for ii in range(8):
+                helpBoard[ii] = gameBoard[i]
+            
+            score = calculateBestMove(helpBoard, 0, 'X')
+            
+            if (highestScore == None): 
+                highestScore = score
+                bestCoice = 1
+            elif (score>highestScore):
+                bestCoice = i
+        print(str(val) + ' - ' + str(i) + ' = score: ' + str(score))
+
+    # print('best Choice: ' + str(bestCoice))
+    if (bestCoice == None):
+        makeRandomMove()
+    else:
+        webElements[bestCoice].click()
     return 
 
 # main
@@ -198,21 +215,42 @@ try:
     for i, element in enumerate(elements):
         webElements[i] = element
 
+    wins = 0
+    losses = 0
+    unsettled = 0
+
     # starting main loop 
-    while (True):
-        sleep(2)
-        updateGameBoardHtml(driver)
-        if (isGameOver(gameBoard) != False):
-            break
+    for i in range(1):
+        while (True):
+            sleep(2)
+            updateGameBoardHtml(driver)
+            print(gameBoard)
+            if (isGameOver(gameBoard) != False):
+                break
+            else:
+                # makeRandomMove()
+                makeBestMove()
+
+        if (isGameOver(gameBoard) == 'X'):
+            wins = wins + 1
+        elif (isGameOver(gameBoard) == 'O'):
+            losses = losses + 1
         else:
-            # makeRandomMove()
-            makeBestMove()
+            unsettled = unsettled + 1
+
+        print('############# ROUND ' + str(wins+losses+unsettled) + ' #############')
+        print('Winner: ' + str(isGameOver(gameBoard)))
+        print('')
+        print('wins: ' + str(wins))
+        print('losses: ' + str(losses))
+        print('unsettled: ' + str(unsettled))
+        print('')
 
 except error as e:
     print(e.strerror)
 finally:
-    sleep(3)
+    sleep(1)
     driver.quit()
-    print('Winner: ' + str(isGameOver()))
+    
 
 
