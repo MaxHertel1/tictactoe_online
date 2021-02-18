@@ -13,6 +13,7 @@ pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/
 w, h = 3, 3
 gameBoard = [[0 for x in range(w)] for y in range(h)]
 imageSet = [[0 for x in range(w)] for y in range(h)]
+webElements = [[0 for x in range(w)] for y in range(h)]
 
 def makeScreenshot(current_session: webdriver):
 
@@ -92,12 +93,9 @@ def interpreteSymbol(input: str):
 
     return text
 
-def interpreteWeb(current_session: webdriver):
+def updateGameBoardHtml(current_session: webdriver):
     # get data directly from website
-    element = current_session.find_element_by_class_name('board')
-    elements = element.find_elements_by_xpath('.//*')
-    for element in elements:
-        print(element.get_attribute('class'))
+    return
 
 def analyzeBoard():
     # opening the cropped/inverted picture
@@ -142,10 +140,37 @@ try:
     element = driver.find_element_by_id('consent')
     element.click()
     
+    #
+    # testclick = driver.find_element_by_class_name('square top left')
+    # testclick.click()
+    
+    #
+
+    # getting all web ellements and save in array
+    # (for clicking operation)
+    element = driver.find_element_by_class_name('board')
+    elements = element.find_elements_by_xpath('.//*')
+    x = 0
+    y = 0
+
+    for element in elements:
+        option = element.get_attribute('class')
+
+        # save WebElements in Array
+        webElements[x][y] = element
+
+        try:
+            print(element.find_element_by_xpath('.//*').get_attribute('class'))
+        except:
+            print('null')
+        # new_element = driver.find_element_by_class_name(option)
+        # print(driver.find_element_by_class_name(option))
+
+
 except error as e:
     print(e.strerror)
 finally:
-    sleep(1)
+    sleep(3)
     # 
     #####################
 
