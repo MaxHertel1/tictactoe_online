@@ -21,3 +21,4 @@ not yet implemented
 - cleaning up
      saving screenshot files in extra directory
 - implementing the OCR gameboard update
+- check who makes the first move  => handling website after the game to start new one

@@ -31,17 +31,17 @@ try:
     wins = 0
     losses = 0
     unsettled = 0
-
+    i = 0
     # starting main loop 
-    for i in range(gameCount):
+    for i in range(1):
 
-        # reset gameboard and 
+        # reset gameboard for new game
         gameBoard = [None] * 9
     
         # first move is random
         webElements[findRandomMove(gameBoard)].click()
         while (True):
-            sleep(2)
+            sleep(1)
             gameboard = updateGameBoardHtml(driver, gameBoard)
             if (isGameOver(gameBoard) != False):
                 break

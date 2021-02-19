@@ -45,7 +45,6 @@ def miniMax(board: list, depth: int, isMax: int):
 
     if (areMovesLeft == False): return 0
 
-    print(board)
     if (isMax):
         best = -10000
 
