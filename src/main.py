@@ -7,9 +7,7 @@ from time import sleep
 from os import error
 from selenium.webdriver.safari.webdriver import WebDriver
 
-gameBoard = [None] * 9
 webElements = [None] * 9
-
 gameCount = 10
 
 # main
@@ -37,6 +35,9 @@ try:
     # starting main loop 
     for i in range(gameCount):
 
+        # reset gameboard and 
+        gameBoard = [None] * 9
+    
         # first move is random
         webElements[findRandomMove(gameBoard)].click()
         while (True):
@@ -57,8 +58,8 @@ try:
 
         print('############# ROUND ' + str(wins+losses+unsettled) + ' #############')
         print('Winner: ' + str(isGameOver(gameBoard)))
+        sleep(2)
         
-
 except error as e:
     print(e.strerror)
 finally:
@@ -72,5 +73,3 @@ finally:
     print('unsettled: ' + str(unsettled))
     print('')
     
-
-
