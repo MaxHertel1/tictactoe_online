@@ -1,6 +1,6 @@
-# tictactoe_online
+# Tic-Tac-Toe (program vs. website)
 
-**description**
+**description:**
 A python3 porgram which plays against a website (https://playtictactoe.org).
 
 fully implemented
