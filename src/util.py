@@ -36,7 +36,7 @@ def evaluateGame(gameBoard: list):
     if (isGameOver(gameBoard) == 'O'): return -10
     return 0
 
-def miniMax(board: list, depth: int, isMax: int):
+def miniMax(board: list, depth: int, isMax: bool):
     score = evaluateGame(board)
     
     if (score == 10): return score
@@ -68,16 +68,15 @@ def miniMax(board: list, depth: int, isMax: int):
 def findBestMove(gameboard: list):
     bestChoice = -1
     bestVal = -1000
+    print(gameboard)
     for i, val in enumerate(gameboard):
         if (val == None):
             gameboard[i] = 'X'
             moveVal = miniMax(gameboard, 0, False)
             gameboard[i] = None
-            print('move:', i, 'score:', moveVal)
-            if (moveVal>bestChoice):
+            # print('move:', i, 'score:', moveVal)
+            if (moveVal>bestVal):
                 bestChoice = i
                 bestVal = moveVal
 
-    print('# best move: ', bestChoice, 'score: ', bestVal)
-    print('')
     return bestChoice

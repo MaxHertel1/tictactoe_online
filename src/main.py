@@ -7,8 +7,9 @@ from time import sleep
 from os import error
 from selenium.webdriver.safari.webdriver import WebDriver
 
+gameBoard = [None] * 9
 webElements = [None] * 9
-gameCount = 10
+gameCount = 20
 
 # main
 try:
@@ -33,22 +34,45 @@ try:
     unsettled = 0
     i = 0
     # starting main loop 
-    for i in range(1):
+    for i in range(gameCount):
 
-        # reset gameboard for new game
-        gameBoard = [None] * 9
-    
-        # first move is random
-        webElements[findRandomMove(gameBoard)].click()
+        # reset the website when playing mulitple rounds
+        if (i>0):
+            element = driver.find_element_by_class_name('game')
+            restart = element.find_element_by_xpath('./div[2]')
+            restart.click()
+
+            # reset gameboard for new game
+            for i, val in enumerate(gameBoard):
+                gameBoard[i] = None
+            print(gameBoard)
+
+            # wait so website can make a move
+            sleep(1)
+
+        # check if website made first move
+        gameBoard = updateGameBoardHtml(driver, gameBoard)
+        if ('O' not in gameBoard):
+            # webiste made no move => first move is random
+            randomMove = findRandomMove(gameBoard)
+            webElements[randomMove].click()
+
         while (True):
             sleep(1)
-            gameboard = updateGameBoardHtml(driver, gameBoard)
-            if (isGameOver(gameBoard) != False):
+            gameBoard = updateGameBoardHtml(driver, gameBoard)
+
+            gameContainer = driver.find_element_by_class_name('game')
+            board = gameContainer.find_element_by_xpath('./div[1]')
+
+            # check if its a win, loose or draw (checking website for board class)
+            if (isGameOver(gameBoard) != False or board.get_attribute('class') != 'board'):
                 break
             else:
-                # webElements[findRandomMove()].click()
-                webElements[findBestMove(gameBoard)].click()
+                bestMove = findBestMove(gameBoard)
+                print('bester Zug:', bestMove)
+                webElements[bestMove].click()
 
+        print('Endstand: ', gameBoard)
         if (isGameOver(gameBoard) == 'X'):
             wins = wins + 1
         elif (isGameOver(gameBoard) == 'O'):
