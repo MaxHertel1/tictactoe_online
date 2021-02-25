@@ -23,3 +23,4 @@ not yet implemented
 - implementing the OCR gameboard update
 - check who makes the first move  => handling website after the game to start new one
 - findBestMove calculates wrong move when webiste starts
+- Alpha Beta Pruning
