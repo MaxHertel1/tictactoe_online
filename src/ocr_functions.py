@@ -1,12 +1,9 @@
-# from AppKit import NSScreen
 from selenium import webdriver
 from PIL import Image, ImageOps
 from os import error, remove
 import os
 import cv2
 import pytesseract
-import numpy as np
-import math
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
@@ -17,53 +14,7 @@ def makeScreenshot(current_session: webdriver):
     current_session.get_screenshot_as_file('./input.png')
 
     # open Screencapture
-    # img_in = Image.open('./input.png')
-
-    img_input = cv2.imread('./input.png')
-    img_input = cv2.cvtColor(img_input, cv2.COLOR_BGR2GRAY)
-
-    img_input = cv2.threshold(img_input, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-    img_input = cv2.medianBlur(img_input, 3)
-    
-    # detecting all lines
-    lines = cv2.HoughLines(img_input,1, np.pi / 180, 150, None, 0, 0)
-
-    if lines is not None:
-            for i in range(0, len(lines)):
-                rho = lines[i][0][0]
-                theta = lines[i][0][1]
-                a = math.cos(theta)
-                b = math.sin(theta)
-                x0 = a * rho
-                y0 = b * rho
-                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-                cv2.line(cdst, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
-
-    # if len(matches) != 0:
-    #     print(len(matches))
-    #     print(matches[0])
-    # else:
-    #     print('no matches')
-        # for (x, y, width, height) in matches: 
-        
-        #     # We draw a green rectangle around 
-        #     # every recognized sign 
-        #     cv2.rectangle(gray, (x, y),  
-        #                 (x + height, y + width),  
-        #                 (0, 255, 0), 5) 
-            
-        #     # Creates the environment of  
-        #     # the picture and shows it 
-
-        #     cv2.imshow(gray) 
-
-
-
-
-
-    return
+    img_in = Image.open('./input.png')
     remove('./input.png')
 
     # get size
@@ -141,27 +92,6 @@ def interpreteSymbol(input: str):
 
     gray = cv2.medianBlur(gray, 3)
     
-    # detecting if its a circle
-    matches = cv2.HoughCircles(gray)
-
-    if len(matches) != 0:
-        print(len(matches))
-
-        for (x, y, width, height) in matches: 
-        
-            # We draw a green rectangle around 
-            # every recognized sign 
-            cv2.rectangle(gray, (x, y),  
-                        (x + height, y + width),  
-                        (0, 255, 0), 5) 
-            
-            # Creates the environment of  
-            # the picture and shows it 
-
-            cv2.imshow(gray) 
-
-
-
     filename = input.format(os.getpid())
     cv2.imwrite(filename, gray)
 
