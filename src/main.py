@@ -10,7 +10,38 @@ from selenium.webdriver.safari.webdriver import WebDriver
 gameBoard = [None] * 9
 webElements = [None] * 9
 gameCount = 2
+boardUpdateMode = False
 
+def printArgError():
+    print('\n#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-')
+    print('incorrect number of arguments')
+    print('python3 main.py <board_update_method>')
+    print('arg: ocr - using screenshots to update the board')
+    print('     html - using html (xpth/classname functions) to update board')
+    print('#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-\n')
+    return
+
+def printHelp():
+    print('\n#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-')
+    print('python3 main.py <board_update_method>')
+    print('arg: ocr - using screenshots to update the board')
+    print('     html - using html (xpth/classname functions) to update board')
+    print('#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-\n')
+    return
+
+if (len(sys.argv) != 2):
+    printArgError()
+    exit()
+elif (sys.argv[1] == 'ocr'):
+    boardUpdateMode = True
+elif (sys.argv[1] == 'html'):
+    boardUpdateMode = False
+elif (sys.argv[1] == 'help'):
+    printHelp()
+    exit()
+
+print(boardUpdateMode, sys.argv)
+exit()
 # main
 try:
     driver = webdriver.Safari() 
@@ -98,4 +129,4 @@ finally:
     print('losses: ' + str(losses))
     print('draws: ' + str(draw))
     print('')
-    
+

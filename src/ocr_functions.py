@@ -20,6 +20,7 @@ def makeScreenshot(current_session: webdriver):
     # get size
     width, height = img_in.size 
 
+    # TODO size adjustments needs to be dynamic to get good results on every windowsize
     # Setting the points for cropped image 
     left = 160
     top = height-900
