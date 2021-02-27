@@ -6,6 +6,7 @@ import cv2
 import pytesseract
 import numpy
 from time import sleep
+import math 
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
@@ -45,47 +46,155 @@ def getIndividualBoxes():
 
     crop_img = img_in[int(img_h*.15):int(img_h*.7), int(img_w*.35):int(img_w*.65)]
 
+    img_h, img_w = crop_img.shape[:2]
     # cv2.imshow('crop_img', crop_img)
     # cv2.waitKey(0)
 
-    output = ""
-    help = False
-    # fill list with default point (left upper corner)
-    cropPoints_x = [[0,img_h]]
-    cropPoints_y = [[img_h,0]]
+    
+    
+    # fill list with default point 
+    cropPoints_x = [1]
+    cropPoints_y = [img_h-1]
 
+    cv2.imwrite('../img/cropped.png',crop_img)
+
+    newimg = crop_img
+
+    in_line = False
     # find where to crop at the x axis
-    for y, row in enumerate(crop_img[0:1]):
-        for x, column in enumerate(row):
-            if(0 in column and not help):
-                cropPoints_x.append([x-1,y])
-                help = True
-            elif (not 0 in column and help):
-                cropPoints_x.append([x,y])
-                help = False
+    for x, row in enumerate(crop_img[0,:]):
+        if(0 in row and not in_line):
+            cropPoints_x.append(x-1)
+            in_line = True
+        elif (255 in row and in_line):
+            cropPoints_x.append(x)
+            in_line = False
 
-            if (len(cropPoints_x) == 4): break
-        if (len(cropPoints_x) == 4): break
-    
+    in_line = False 
     # find where to crop at the y axis
-    for x, row in enumerate(crop_img[:1, 1:]):
-        for y, column in enumerate(row):
-            if(0 in column and not help):
-                cropPoints_y.append([x,y-1])
-                help = True
-            elif (not 0 in column and help):
-                cropPoints_y.append([x,y])
-                help = False
+    for y, column in enumerate(crop_img[:, 0]):
+        if(0 in column and not in_line):
+            cropPoints_y.append(y-1)
+            in_line = True
+        elif (255 in column and in_line):
+            cropPoints_y.append(y)
+            in_line = False
 
-    cropPoints_x.append([img_w,0])
-    cropPoints_y.append([0, img_w])
+    cropPoints_x.append(img_w+1)
+    cropPoints_y.append(1)
+
+    # marking found edges (debug)
+    # for i in cropPoints_x:
+    #         newimg = cv2.circle(newimg,(i,5),2,(2,255,2),2)
+
+    # for i in cropPoints_y:
+    #     newimg = cv2.circle(newimg,(5,i),2,(2,255,2),2)
+
+    cropPoints_x.sort()
+    cropPoints_y.reverse()
+    cropPoints_y.sort()
+
+    Arr_cropPoints_x = numpy.array(cropPoints_x)
+    # for i, val in enumerate(cropPoints_x):
+    #     Arr_cropPoints_x[i] = int(val)
+
+    Arr_cropPoints_y = numpy.array(cropPoints_y)
+
+    for i, val in enumerate(Arr_cropPoints_y):
+        print(i, Arr_cropPoints_y[i])
     
-    print(cropPoints_x)
-    print(cropPoints_y)
-        
-        
-    for i in range(9):
+    print(Arr_cropPoints_x)
+    print(Arr_cropPoints_y)
 
+    box_imgs = []
+    print('-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#')
+    # i = crop_img[1 : 257, 283 : 582]
+
+    # cv2.imshow('',i)
+    # cv2.waitKey(0)
+    png_output = 0
+    for ii in range(0,5,2):
+        for jj in range(0,5,2):
+
+            h1 = int(Arr_cropPoints_y[jj])
+            h2 = int(Arr_cropPoints_y[jj+1])
+            w1 = int(Arr_cropPoints_x[ii])
+            w2 = int(Arr_cropPoints_x[ii+1])
+
+            # newimg = cv2.line(newimg,(1,h1),(1,h2),(255,0,0),3)
+            # newimg = cv2.line(newimg,(w1,1),(w2,1),(0,255,0),3)
+
+
+            # cropped_img = Image.open('../img/cropped.png')
+
+            # h,w = cropped_img.size
+            # box_img = cropped_img.crop((w1,w-w2,h1,h-h1))
+
+            # box_img.save(f'../img/sliced/\{i}.png')
+
+            # newimg = cv2.rectangle(newimg,(w1,h1), (w2,h2), (0,0,255),3)
+
+            # print(h1, h2, w1, w2)
+            cropped_img = cv2.imread('../img/cropped.png')
+            box_img = cropped_img[w1:w2, h1:h2]
+            cv2.imwrite(f'../img/sliced/{png_output}.png', box_img)
+            png_output+=1
+            # i = crop_img.crop()
+            # # i = crop_img[w1:h1, w2:h2]
+
+            # # box_imgs.append(crop_img[Arr_cropPoints_y[i]:Arr_cropPoints_y[i+1], Arr_cropPoints_x[j]:Arr_cropPoints_x[j+1]])
+            # # i = crop_img[Arr_cropPoints_y[i]:Arr_cropPoints_y[i+1], Arr_cropPoints_x[j]:Arr_cropPoints_x[j+1]]
+            # # print(Arr_cropPoints_y[i], Arr_cropPoints_y[i+1], Arr_cropPoints_x[j], Arr_cropPoints_x[j+1])
+
+
+    
+    # i = crop_img[h1:h2, w1:w2]
+
+    # for i, box_img in enumerate(box_imgs):
+    #     cv2.imwrite('../img/sliced/\{i}.png', box_img)
+
+
+    
+    # box_img = crop_img[0:200, 0:200]
+
+    # cv2.imshow('str(i)', box_img)
+    # cv2.waitKey(0)
+    # sleep(.5)
+    # cv2.imshow('str(i)', box_img2)
+    # cv2.waitKey(0)
+
+    # print(cropPoints_y[i], cropPoints_y[i+1])
+    # print(cropPoints_x[j], cropPoints_x[j+1])
+    # print(box_img)
+    # fill list with default point
+    # print(cropPoints_x)
+    # cropPoints_y.reverse()
+    # print(cropPoints_y)
+
+    # box_imgs = []
+    # for i, x in enumerate(cropPoints_x):
+    #     if i < len(cropPoints_x)-1:
+    #         for j, y in enumerate(cropPoints_y):
+    #             if j < len(cropPoints_y)-1:
+
+    #                 crop_img = cv2.rectangle(crop_img,(cropPoints_y[i],cropPoints_y[i+1]), (cropPoints_x[j],cropPoints_x[j+1]), (255, 000, 000),4)
+    #                 # box_imgs.append(crop_img[cropPoints_y[i]:cropPoints_y[i+1], cropPoints_x[j]:cropPoints_x[j+1]])
+    #                 # print(y,cropPoints_x[j+1], x, cropPoints_y[i+1])
+    
+    # print(len(box_imgs))
+    # for i, box_img in enumerate(box_imgs):
+
+    # cv2.imshow('str(i)', box_img)
+    # cv2.waitKey(0)
+    # sleep(1)
+
+    # cv2.imshow(i, box_img)
+    # cv2.waitKey(0)
+    # cropPoints_y[i] : cropPoints_y[i+1], 0 : cropPoints_y[i]
+    # [cropPoints_x[i],cropPoints_x[i]]
+        
+    # for i in range(3):
+    #     for j in range(3):
 
         # output = ""
         # for i in row:
@@ -188,29 +297,32 @@ def interpreteSymbol(input: str):
 
     return text
 
-if __name__ == '__main__':
-    try:
-        webElements = [None]*9
-        driver = webdriver.Safari()
-        driver.get('https://playtictactoe.org')
-        driver.set_window_position(0,0)
+# if __name__ == '__main__':
+#     try:
+#         webElements = [None]*9
+#         driver = webdriver.Safari()
+#         driver.get('https://playtictactoe.org')
+#         driver.set_window_position(0,0)
 
-        driver.maximize_window()
+#         driver.maximize_window()
 
-        # accept cookies => clean vision
-        element = driver.find_element_by_id('consent')
-        element.click()
+#         # accept cookies => clean vision
+#         element = driver.find_element_by_id('consent')
+#         element.click()
         
-        element = driver.find_element_by_class_name('board')
-        elements = element.find_elements_by_xpath('./*')
+#         element = driver.find_element_by_class_name('board')
+#         elements = element.find_elements_by_xpath('./*')
 
-        for i, element in enumerate(elements):
-            webElements[i] = element
+#         for i, element in enumerate(elements):
+#             webElements[i] = element
 
-        webElements[0].click()
-        sleep(.5)
-        updateGameBoardOcr(driver)
-    except error as e:
-        print(e.strerror)
-    finally:
-        driver.close()
+#         webElements[0].click()
+#         sleep(.5)
+#         updateGameBoardOcr(driver)
+#     except error as e:
+#         print(e.strerror)
+#     finally:
+#         driver.close()
+
+if __name__ == '__main__':
+    getIndividualBoxes()
