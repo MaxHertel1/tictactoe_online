@@ -29,6 +29,16 @@ def printHelp():
     print('#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-\n')
     return
 
+def updateGameBoard(driver: WebDriver, mode: bool):
+    if (mode):
+        #ocr
+        out = updateGameBoardOcr(driver)
+    else:
+        #html
+        out = updateGameBoardHtml(driver)
+    return out
+
+
 if (len(sys.argv) != 2):
     printArgError()
     exit()
@@ -40,13 +50,14 @@ elif (sys.argv[1] == 'help'):
     printHelp()
     exit()
 
-print(boardUpdateMode, sys.argv)
-exit()
+
 # main
 try:
     driver = webdriver.Safari() 
     driver.get('https://playtictactoe.org')
+    driver.set_window_position(1,1)
     driver.maximize_window
+    
 
     # accept cookies => clean vision
     element = driver.find_element_by_id('consent')
@@ -82,7 +93,7 @@ try:
             # sleep(0.5)
 
         # check if website made first move
-        gameBoard = updateGameBoardHtml(driver, gameBoard)
+        gameBoard = updateGameBoard(driver, boardUpdateMode)
         if ('O' not in gameBoard):
             # webiste made no move => first move is random
             randomMove = findRandomMove(gameBoard)
@@ -90,7 +101,7 @@ try:
 
         while (True):
             sleep(0.5)
-            gameBoard = updateGameBoardHtml(driver, gameBoard)
+            gameBoard = updateGameBoard(driver, boardUpdateMode)
 
             gameContainer = driver.find_element_by_class_name('game')
             board = gameContainer.find_element_by_xpath('./div[1]')
@@ -100,7 +111,7 @@ try:
                 break
             else:
                 sleep(0.5)
-                gameBoard = updateGameBoardHtml(driver, gameBoard)
+                gameBoard = updateGameBoard(driver, boardUpdateMode)
                 bestMove = findBestMove(gameBoard)
                 webElements[bestMove].click()
 

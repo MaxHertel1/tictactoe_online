@@ -1,11 +1,13 @@
 from selenium import webdriver
 
 # HTML functions
-def updateGameBoardHtml(current_session: webdriver, gameBoard: list):
+def updateGameBoardHtml(current_session: webdriver):
 
     # get data directly from website
     element = current_session.find_element_by_class_name('board')
     elements = element.find_elements_by_xpath('./*')
+
+    gameBoard = [None] * 9
 
     for i, element in enumerate(elements):
 

@@ -1,21 +1,109 @@
 from selenium import webdriver
 from PIL import Image, ImageOps
-from os import error, remove
+from os import error, lseek, remove
 import os
 import cv2
 import pytesseract
+import numpy
+from time import sleep
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
 # OCR functions
-def makeScreenshot(current_session: webdriver):
+def updateGameBoardOcr(current_session: webdriver):
+    gameBoard = [None] * 9
 
     # make Screencapture and save
-    current_session.get_screenshot_as_file('./input.png')
+    current_session.get_screenshot_as_file('../img/input.png')
 
+    getIndividualBoxes()
+
+    # return gameboard
+    return
+
+def getIndividualBoxes():
     # open Screencapture
-    img_in = Image.open('./input.png')
-    remove('./input.png')
+    img_in = Image.open('../img/input.png')
+    # remove('./input.png')
+
+    if img_in.mode == 'RGBA':
+        r, g, b, a = img_in.split() # no alpha needed
+        img_rgb = Image.merge('RGB', (r, g, b))
+        img_inverted = ImageOps.invert(img_rgb)
+    else:
+        img_inverted = ImageOps.invert(img_in)
+
+    img_inverted.save('../img/inverted.png')
+
+    img_in = cv2.imread('../img/inverted.png')
+  
+    # resize image
+    img_h, img_w = img_in.shape[:2]
+
+    # img_h *= .9
+    # img_w *= .8
+
+    crop_img = img_in[int(img_h*.15):int(img_h*.7), int(img_w*.35):int(img_w*.65)]
+
+    # cv2.imshow('crop_img', crop_img)
+    # cv2.waitKey(0)
+
+    output = ""
+    help = False
+    # fill list with default point (left upper corner)
+    cropPoints_x = [[0,img_h]]
+    cropPoints_y = [[img_h,0]]
+
+    # find where to crop at the x axis
+    for y, row in enumerate(crop_img[0:1]):
+        for x, column in enumerate(row):
+            if(0 in column and not help):
+                cropPoints_x.append([x-1,y])
+                help = True
+            elif (not 0 in column and help):
+                cropPoints_x.append([x,y])
+                help = False
+
+            if (len(cropPoints_x) == 4): break
+        if (len(cropPoints_x) == 4): break
+    
+    # find where to crop at the y axis
+    for x, row in enumerate(crop_img[:1, 1:]):
+        for y, column in enumerate(row):
+            if(0 in column and not help):
+                cropPoints_y.append([x,y-1])
+                help = True
+            elif (not 0 in column and help):
+                cropPoints_y.append([x,y])
+                help = False
+
+    cropPoints_x.append([img_w,0])
+    cropPoints_y.append([0, img_w])
+    
+    print(cropPoints_x)
+    print(cropPoints_y)
+        
+        
+    for i in range(9):
+
+
+        # output = ""
+        # for i in row:
+        #     if(0 in i):
+        #         output = output + "#"
+        #     else:
+        #         output = output + "_"
+            
+    #     print(output)
+    # print(img_in)
+    # h = 20
+    # w = 20
+    # crop_img = img_in[d_height//2:d_height//2, d_width:d_width+w]
+
+    # # img = cv2.rectangle(img_in, (0+offset, d_height-offset), (d_width-offset,0+offset),(0,200,0),5)
+    # cv2.imshow('image', crop_img)
+    # cv2.waitKey(0)
+    exit()
 
     # get size
     width, height = img_in.size 
@@ -99,3 +187,30 @@ def interpreteSymbol(input: str):
     text = pytesseract.image_to_string(gray)
 
     return text
+
+if __name__ == '__main__':
+    try:
+        webElements = [None]*9
+        driver = webdriver.Safari()
+        driver.get('https://playtictactoe.org')
+        driver.set_window_position(0,0)
+
+        driver.maximize_window()
+
+        # accept cookies => clean vision
+        element = driver.find_element_by_id('consent')
+        element.click()
+        
+        element = driver.find_element_by_class_name('board')
+        elements = element.find_elements_by_xpath('./*')
+
+        for i, element in enumerate(elements):
+            webElements[i] = element
+
+        webElements[0].click()
+        sleep(.5)
+        updateGameBoardOcr(driver)
+    except error as e:
+        print(e.strerror)
+    finally:
+        driver.close()
