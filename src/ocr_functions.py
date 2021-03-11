@@ -15,7 +15,7 @@ def updateGameBoardOcr(current_session: webdriver):
     gameBoard = [None] * 9
 
     # make Screencapture and save
-    current_session.get_screenshot_as_file('../img/input.png')
+    current_session.get_screenshot_as_file('./img/input.png')
 
     getIndividualBoxes()
 
@@ -24,8 +24,12 @@ def updateGameBoardOcr(current_session: webdriver):
 
 def getIndividualBoxes():
     # open Screencapture
-    img_in = Image.open('../img/input.png')
-    # remove('./input.png')
+    try:
+        img_in = Image.open('./img/input.png')
+
+    except error as e:
+        print(e.strerror)
+        return
 
     if img_in.mode == 'RGBA':
         r, g, b, a = img_in.split() # no alpha needed
@@ -34,9 +38,9 @@ def getIndividualBoxes():
     else:
         img_inverted = ImageOps.invert(img_in)
 
-    img_inverted.save('../img/inverted.png')
+    img_inverted.save('./img/inverted.png')
 
-    img_in = cv2.imread('../img/inverted.png')
+    img_in = cv2.imread('./img/inverted.png')
   
     # resize image
     img_h, img_w = img_in.shape[:2]
@@ -47,16 +51,12 @@ def getIndividualBoxes():
     crop_img = img_in[int(img_h*.15):int(img_h*.7), int(img_w*.35):int(img_w*.65)]
 
     img_h, img_w = crop_img.shape[:2]
-    # cv2.imshow('crop_img', crop_img)
-    # cv2.waitKey(0)
-
-    
-    
+ 
     # fill list with default point 
     cropPoints_x = [1]
     cropPoints_y = [img_h-1]
 
-    cv2.imwrite('../img/cropped.png',crop_img)
+    cv2.imwrite('./img/cropped.png',crop_img)
 
     newimg = crop_img
 
@@ -83,20 +83,11 @@ def getIndividualBoxes():
     cropPoints_x.append(img_w+1)
     cropPoints_y.append(1)
 
-    # marking found edges (debug)
-    # for i in cropPoints_x:
-    #         newimg = cv2.circle(newimg,(i,5),2,(2,255,2),2)
-
-    # for i in cropPoints_y:
-    #     newimg = cv2.circle(newimg,(5,i),2,(2,255,2),2)
-
     cropPoints_x.sort()
     cropPoints_y.reverse()
     cropPoints_y.sort()
 
     Arr_cropPoints_x = numpy.array(cropPoints_x)
-    # for i, val in enumerate(cropPoints_x):
-    #     Arr_cropPoints_x[i] = int(val)
 
     Arr_cropPoints_y = numpy.array(cropPoints_y)
 
@@ -108,10 +99,11 @@ def getIndividualBoxes():
 
     box_imgs = []
     print('-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#')
-    # i = crop_img[1 : 257, 283 : 582]
+    i = crop_img[1 : 257, 283 : 582]
 
-    # cv2.imshow('',i)
-    # cv2.waitKey(0)
+    cv2.imshow('',i)
+    cv2.waitKey(0)
+
     png_output = 0
     for ii in range(0,5,2):
         for jj in range(0,5,2):
@@ -124,6 +116,10 @@ def getIndividualBoxes():
             # newimg = cv2.line(newimg,(1,h1),(1,h2),(255,0,0),3)
             # newimg = cv2.line(newimg,(w1,1),(w2,1),(0,255,0),3)
 
+            # newimg = cv2.circle(newimg, (w1,h1),2,(0,255,0),2)
+            # newimg = cv2.circle(newimg, (w2,h2),2,(0,255,0),2)
+            # cv2.imshow('str(i)', newimg) 
+            # cv2.waitKey(0)
 
             # cropped_img = Image.open('../img/cropped.png')
 
@@ -135,9 +131,28 @@ def getIndividualBoxes():
             # newimg = cv2.rectangle(newimg,(w1,h1), (w2,h2), (0,0,255),3)
 
             # print(h1, h2, w1, w2)
-            cropped_img = cv2.imread('../img/cropped.png')
+            cropped_img = cv2.imread('./img/cropped.png')
             box_img = cropped_img[w1:w2, h1:h2]
-            cv2.imwrite(f'../img/sliced/{png_output}.png', box_img)
+
+            scale_percent = 3 # percent of original size
+            width = int(box_img.shape[1] * scale_percent / 100)
+            height = int(box_img.shape[0] * scale_percent / 100)
+            dim = (width, height)
+            
+            # resize image
+            resized = cv2.resize(box_img, dim, interpolation = cv2.INTER_AREA)
+
+            for row in resized:
+                output = ""
+                for column in row:
+                    for i in row:
+                        if(0 in i):
+                            output = output + "#"
+                        else:
+                            output = output + "_"
+                print(output)
+
+            cv2.imwrite(f'./img/sliced/{png_output}.png', box_img)
             png_output+=1
             # i = crop_img.crop()
             # # i = crop_img[w1:h1, w2:h2]
@@ -145,7 +160,7 @@ def getIndividualBoxes():
             # # box_imgs.append(crop_img[Arr_cropPoints_y[i]:Arr_cropPoints_y[i+1], Arr_cropPoints_x[j]:Arr_cropPoints_x[j+1]])
             # # i = crop_img[Arr_cropPoints_y[i]:Arr_cropPoints_y[i+1], Arr_cropPoints_x[j]:Arr_cropPoints_x[j+1]]
             # # print(Arr_cropPoints_y[i], Arr_cropPoints_y[i+1], Arr_cropPoints_x[j], Arr_cropPoints_x[j+1])
-
+    
 
     
     # i = crop_img[h1:h2, w1:w2]
@@ -157,8 +172,7 @@ def getIndividualBoxes():
     
     # box_img = crop_img[0:200, 0:200]
 
-    # cv2.imshow('str(i)', box_img)
-    # cv2.waitKey(0)
+    
     # sleep(.5)
     # cv2.imshow('str(i)', box_img2)
     # cv2.waitKey(0)
