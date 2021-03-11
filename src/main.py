@@ -32,10 +32,10 @@ def printHelp():
 def updateGameBoard(driver: WebDriver, mode: bool):
     if (mode):
         #ocr
-        out = updateGameBoardOcr(driver)
+        out = ocr_functions.updateGameBoardOcr(driver)
     else:
         #html
-        out = updateGameBoardHtml(driver)
+        out = html_functions.updateGameBoardHtml(driver)
     return out
 
 
@@ -96,7 +96,7 @@ try:
         gameBoard = updateGameBoard(driver, boardUpdateMode)
         if ('O' not in gameBoard):
             # webiste made no move => first move is random
-            randomMove = findRandomMove(gameBoard)
+            randomMove = util.findRandomMove(gameBoard)
             webElements[randomMove].click()
 
         while (True):
@@ -107,25 +107,25 @@ try:
             board = gameContainer.find_element_by_xpath('./div[1]')
 
             # check if its a win, loose or draw (checking website for board class)
-            if (isGameOver(gameBoard) != False or board.get_attribute('class') != 'board'):
+            if (util.isGameOver(gameBoard) != False or board.get_attribute('class') != 'board'):
                 break
             else:
                 sleep(0.5)
                 gameBoard = updateGameBoard(driver, boardUpdateMode)
-                bestMove = findBestMove(gameBoard)
+                bestMove = util.findBestMove(gameBoard)
                 webElements[bestMove].click()
 
         print('Endstand: ')
-        printBoard(gameBoard)
-        if (isGameOver(gameBoard) == 'X'):
+        util.printBoard(gameBoard)
+        if (util.isGameOver(gameBoard) == 'X'):
             wins = wins + 1
-        elif (isGameOver(gameBoard) == 'O'):
+        elif (util.isGameOver(gameBoard) == 'O'):
             losses = losses + 1
         else:
             draw = draw + 1
 
         print('############# ROUND ' + str(wins+losses+draw) + ' #############')
-        print('Winner: ' + str(isGameOver(gameBoard)))
+        print('Winner: ' + str(util.isGameOver(gameBoard)))
         sleep(2)
         
 except error as e:
